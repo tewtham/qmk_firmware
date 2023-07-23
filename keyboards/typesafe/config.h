@@ -1,7 +1,7 @@
 #pragma once
 
 /* key matrix size */
-#define MATRIX_ROWS 10
+#define MATRIX_ROWS 12
 #define MATRIX_COLS 6
 
 /* Split Keyboard specific options */
@@ -16,4 +16,3 @@
 #define LOCKING_SUPPORT_ENABLE
 /* Locking resynchronize hack */
 #define LOCKING_RESYNC_ENABLE
-#define SPLIT_TRANSACTION_IDS_KB JOY_SYNC

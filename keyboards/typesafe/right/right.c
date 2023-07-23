@@ -16,7 +16,6 @@
 
 #include "right.h"
 #include "pointing_device.h"
-#include "transactions.h"
 
 extern const pointing_device_driver_t pointing_device_driver;
 
@@ -25,51 +24,6 @@ static bool scroll_pressed_y;
 static bool mouse_buttons_dirty;
 static int8_t scroll_h;
 static int8_t scroll_v;
-static joy_sync_t state;
-static uint32_t last_sync = 0;
-
-#define UP KC_LALT
-#define DOWN KC_LSFT
-#define LEFT KC_LGUI
-#define RIGHT KC_LCTL
-
-void register_joy(bool old, bool dir, uint16_t keycode) {
-    if (old == dir) {
-        return;
-    }
-    if (dir) {
-        register_code(keycode);
-    } else {
-        unregister_code(keycode);
-    }
-}
-
-void reset_joy(void) {
-    register_joy(state.up, false, UP);
-    register_joy(state.down, false, DOWN);
-    register_joy(state.left, false, LEFT);
-    register_joy(state.right, false, RIGHT);
-    state.up = false;
-    state.down = false;
-    state.left = false;
-    state.right = false;
-}
-
-void matrix_scan_user() {
-   if (!is_keyboard_master() || timer_elapsed32(last_sync) <= 100) return;
-        
-    joy_sync_t d = {false, false, false, false};
-    if(transaction_rpc_exec(JOY_SYNC, sizeof(0), NULL, sizeof(d), &d)) {
-        last_sync = timer_read32();
-        register_joy(state.up, d.up, UP);
-        register_joy(state.down, d.down, DOWN);
-        register_joy(state.left, d.left, LEFT);
-        register_joy(state.right, d.right, RIGHT);
-        state = d;
-    } else {
-        reset_joy();
-    }
-}
 
 void pointing_device_init_kb(void){
     if(!is_keyboard_master()) return;
@@ -95,6 +49,10 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     int8_t clamped_x = mouse_report.x, clamped_y = mouse_report.y;
     mouse_report.x = 0;
     mouse_report.y = 0;
+
+    if (!layer_state_is(2)) {
+        return mouse_report;
+    }
 
     if (scroll_pressed_x || scroll_pressed_y) {
         // accumulate scroll
